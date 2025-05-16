@@ -8,7 +8,7 @@ local function createESP(npc, color)
     local esp = Instance.new("BillboardGui")
     esp.Name = "Executor2_ESP"
     esp.Size = UDim2.new(0, 100, 0, 40)
-    esp.Adornee = npc:FindFirstChild("Head") or npc:FindFirstChildWhichIsA("BasePart")
+    esp.Adornee = npc.PrimaryPart or npc:FindFirstChild("Head") or npc:FindFirstChildWhichIsA("BasePart")
     esp.AlwaysOnTop = true
     esp.ResetOnSpawn = false
 
@@ -39,16 +39,26 @@ local function isRed(npc)
     return false
 end
 
+-- Danh sách NPC có PrimaryPart
+local primaryNPCs = {
+    stalker = true,
+    pig_monster = true,
+}
+
 -- Quét và thêm ESP
 local function scanNPCs()
     for _, npc in ipairs(Workspace:GetDescendants()) do
-        if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and npc:FindFirstChild("Head") then
+        if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and not Players:GetPlayerFromCharacter(npc) then
             if npc:FindFirstChild("Executor2_ESP") then continue end
-            if Players:GetPlayerFromCharacter(npc) then continue end
             if isRed(npc) then continue end
 
             local name = npc.Name:lower()
             local color = (name == "deer") and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 255, 255)
+
+            if primaryNPCs[name] then
+                npc.PrimaryPart = npc.PrimaryPart or npc:FindFirstChild("HumanoidRootPart") or npc:FindFirstChild("Head")
+            end
+
             createESP(npc, color)
 
             -- Tự xóa ESP khi NPC chết hoặc biến mất
