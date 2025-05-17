@@ -1,0 +1,65 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local CoreGui = game:GetService("CoreGui")
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "ExecuteButtonGUI"
+gui.Parent = CoreGui
+gui.ResetOnSpawn = false
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 100, 0, 50)
+button.Position = UDim2.new(0.1, 0, 0.1, 0)
+button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+button.BackgroundTransparency = 0.3
+button.Text = "EBerry"
+button.TextColor3 = Color3.fromRGB(244, 244, 244)
+button.Font = Enum.Font.SourceSansBold
+button.TextScaled = true
+button.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0.2, 0)
+corner.Parent = button
+
+local UserInputService = game:GetService("UserInputService")
+local dragging, startPos, startMousePos
+
+button.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        startPos = button.Position
+        startMousePos = input.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+button.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+        local delta = input.Position - startMousePos
+        button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+local canClick = true
+
+button.MouseButton1Click:Connect(function()
+    if not canClick then return end
+    canClick = false
+
+    for i = 1, 25 do
+game:GetService("Players").LocalPlayer.Character:WaitForChild("Berry"):WaitForChild("eat"):FireServer()
+
+    end
+
+    
+    canClick = true
+end)
+
+LocalPlayer.CharacterAdded:Connect(function()
+    gui.Parent = CoreGui
+end)
