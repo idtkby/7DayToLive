@@ -51,6 +51,7 @@ local function scanNPCs()
         if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and not Players:GetPlayerFromCharacter(npc) then
             if npc:FindFirstChild("Executor2_ESP") then continue end
             if isRed(npc) then continue end
+            if npc.Name:lower() == "skeleton" then continue end
 
             local name = npc.Name:lower()
             local color = (name == "deer") and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 255, 255)
