@@ -18,7 +18,7 @@ local function createESP(npc, color)
     text.Text = npc.Name
     text.TextColor3 = color
     text.TextScaled = true
-    text.Font = Enum.Font.SourceSansBold
+    text.Font = Enum.Font.Fantasy
 
     esp.Parent = npc
 end
