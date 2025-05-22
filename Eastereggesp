@@ -1,0 +1,39 @@
+-- ESP Easter Egg (chữ thường, không ảnh hưởng người khác)
+local function createESP(part)
+	if not part:IsA("BasePart") then return end
+	if part:FindFirstChild("egg_esp") then return end
+
+	local billboard = Instance.new("BillboardGui", part)
+	billboard.Name = "egg_esp"
+	billboard.Size = UDim2.new(0, 100, 0, 30)
+	billboard.AlwaysOnTop = true
+	billboard.Adornee = part
+
+	local label = Instance.new("TextLabel", billboard)
+	label.Size = UDim2.new(1, 0, 1, 0)
+	label.BackgroundTransparency = 1
+	label.Text = "Easter egg"
+	label.TextColor3 = Color3.fromRGB(255, 255, 0)
+	label.TextStrokeTransparency = 0.5
+	label.TextScaled = true
+	label.Font = Enum.Font.Bodoni
+end
+
+local function scanForEggs()
+	for _, v in ipairs(workspace:GetDescendants()) do
+		if v:IsA("BasePart") and v.Name == "easter_egg" then
+			createESP(v)
+		end
+	end
+end
+
+-- Theo dõi real-time nếu egg spawn sau
+workspace.DescendantAdded:Connect(function(v)
+	if v:IsA("BasePart") and v.Name == "easter_egg" then
+		task.wait(0.1) -- đợi item ổn định trong workspace
+		createESP(v)
+	end
+end)
+
+-- Quét ban đầu
+scanForEggs()
