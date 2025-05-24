@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "ExecuteButtonGUI"
@@ -12,8 +13,8 @@ button.Size = UDim2.new(0, 100, 0, 50)
 button.Position = UDim2.new(0.1, 0, 0.1, 0)
 button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 button.BackgroundTransparency = 0.3
-button.Text = "EBerry"
-button.TextColor3 = Color3.fromRGB(244, 244, 244)
+button.Text = "Eat"
+button.TextColor3 = Color3.fromRGB(150, 150, 150) -- mặc định là xám
 button.Font = Enum.Font.Bodoni
 button.TextScaled = true
 button.Parent = gui
@@ -22,44 +23,70 @@ local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0.2, 0)
 corner.Parent = button
 
+-- Drag mobile
 local UserInputService = game:GetService("UserInputService")
 local dragging, startPos, startMousePos
 
 button.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        startPos = button.Position
-        startMousePos = input.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
+	if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
+		dragging = true
+		startPos = button.Position
+		startMousePos = input.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
 end)
 
 button.InputChanged:Connect(function(input)
-    if dragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
-        local delta = input.Position - startMousePos
-        button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-    end
+	if dragging and (input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement) then
+		local delta = input.Position - startMousePos
+		button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
 end)
 
-local canClick = true
-
+-- Nút ăn
 button.MouseButton1Click:Connect(function()
-    if not canClick then return end
-    canClick = false
+	local char = LocalPlayer.Character
+	local tool = char and char:FindFirstChildOfClass("Tool")
+	if not tool or not tool:FindFirstChild("eat") then return end
 
-    for i = 1, 25 do
-game:GetService("Players").LocalPlayer.Character:WaitForChild("Berry"):WaitForChild("eat"):FireServer()
-
-    end
-
-    
-    canClick = true
+	local name = tool.Name
+	if name == "Berry" then
+		for i = 1, 25 do tool.eat:FireServer() end
+	elseif name == "Cooked Deer Meat" then
+		for i = 1, 2 do tool.eat:FireServer() end
+	elseif name == "Cooked Fish" then
+		for i = 1, 3 do tool.eat:FireServer() end
+	elseif name == "Blood Bark" then
+		for i = 1, 12 do tool.eat:FireServer() end
+	elseif name == "Beans" then
+		for i = 1, 6 do tool.eat:FireServer() end
+	end
 end)
 
+-- Tự động đổi màu chữ
+local validFoods = {
+	["Berry"] = true,
+	["Cooked Deer Meat"] = true,
+	["Cooked Fish"] = true,
+	["Blood Bark"] = true,
+	["Beans"] = true,
+}
+
+RunService.RenderStepped:Connect(function()
+	local char = LocalPlayer.Character
+	local tool = char and char:FindFirstChildOfClass("Tool")
+	if tool and tool:FindFirstChild("eat") and validFoods[tool.Name] then
+		button.TextColor3 = Color3.fromRGB(244, 244, 244) -- trắng khi đúng
+	else
+		button.TextColor3 = Color3.fromRGB(150, 150, 150) -- xám khi sai
+	end
+end)
+
+-- Không biến mất khi reset
 LocalPlayer.CharacterAdded:Connect(function()
-    gui.Parent = CoreGui
+	gui.Parent = CoreGui
 end)
