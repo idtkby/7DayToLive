@@ -8,8 +8,8 @@ task.spawn(function()
     antiVoid.Anchored = true
     antiVoid.CanCollide = false
     antiVoid.Transparency = 1
-    antiVoid.Size = Vector3.new(2500, 1, 2500)
-    antiVoid.Position = Vector3.new(94.80, -133.40, 409.71)
+    antiVoid.Size = Vector3.new(5000, 1, 5000)
+    antiVoid.Position = Vector3.new(1304.48, 1.22, 1320.84)
     antiVoid.Name = "AntiVoidPlatform"
     antiVoid.Parent = workspace
 
