@@ -4,86 +4,96 @@ local LocalPlayer = Players.LocalPlayer
 local Workspace = game:GetService("Workspace")
 
 -- Tạo ESP
-local function createESP(npc, color)
-    local esp = Instance.new("BillboardGui")
-    esp.Name = "Executor2_ESP"
-    esp.Size = UDim2.new(0, 100, 0, 40)
-    esp.Adornee = npc.PrimaryPart or npc:FindFirstChild("Head") or npc:FindFirstChildWhichIsA("BasePart")
-    esp.AlwaysOnTop = true
-    esp.ResetOnSpawn = false
+local function createESP(npc, color, labelText)
+	local esp = Instance.new("BillboardGui")
+	esp.Name = "Executor2_ESP"
+	esp.Size = UDim2.new(0, 200, 0, 50)
+	esp.Adornee = npc.PrimaryPart or npc:FindFirstChild("Head") or npc:FindFirstChildWhichIsA("BasePart")
+	esp.AlwaysOnTop = true
+	esp.ResetOnSpawn = false
 
-    local text = Instance.new("TextLabel", esp)
-    text.Size = UDim2.new(1, 0, 1, 0)
-    text.BackgroundTransparency = 1
-    text.Text = npc.Name
-    text.TextColor3 = color
-    text.TextScaled = true
-    text.Font = Enum.Font.Bodoni
+	local text = Instance.new("TextLabel", esp)
+	text.Size = UDim2.new(1, 0, 1, 0)
+	text.BackgroundTransparency = 1
+	text.Text = labelText or npc.Name
+	text.TextColor3 = color
+	text.TextScaled = true
+	text.Font = Enum.Font.Bodoni
 
-    esp.Parent = npc
+	esp.Parent = npc
 end
 
 -- Kiểm tra màu chữ có phải đỏ không (hostile)
 local function isRed(npc)
-    local head = npc:FindFirstChild("Head")
-    if head and head:FindFirstChildOfClass("BillboardGui") then
-        for _, gui in ipairs(head:GetChildren()) do
-            if gui:IsA("BillboardGui") then
-                local label = gui:FindFirstChildOfClass("TextLabel")
-                if label and label.TextColor3 == Color3.fromRGB(255, 0, 0) then
-                    return true
-                end
-            end
-        end
-    end
-    return false
+	local head = npc:FindFirstChild("Head")
+	if head and head:FindFirstChildOfClass("BillboardGui") then
+		for _, gui in ipairs(head:GetChildren()) do
+			if gui:IsA("BillboardGui") then
+				local label = gui:FindFirstChildOfClass("TextLabel")
+				if label and label.TextColor3 == Color3.fromRGB(255, 0, 0) then
+					return true
+				end
+			end
+		end
+	end
+	return false
 end
 
 -- Danh sách NPC có PrimaryPart
 local primaryNPCs = {
-    stalker = true,
-    pig_monster = true,
+	stalker = true,
+	pig_monster = true,
+	mammoth = true,
 }
 
 -- Quét và thêm ESP
 local function scanNPCs()
-    for _, npc in ipairs(Workspace:GetDescendants()) do
-        if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and not Players:GetPlayerFromCharacter(npc) then
-            if npc:FindFirstChild("Executor2_ESP") then continue end
-            if isRed(npc) then continue end
-            if npc.Name:lower() == "skeleton" then continue end
+	for _, npc in ipairs(Workspace:GetDescendants()) do
+		if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and not Players:GetPlayerFromCharacter(npc) then
+			if npc:FindFirstChild("Executor2_ESP") then continue end
+			if isRed(npc) then continue end
+			if npc.Name:lower() == "skeleton" then continue end
 
-            local name = npc.Name:lower()
-            local color = (name == "deer") and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 255, 255)
+			local name = npc.Name:lower()
+			local color = Color3.fromRGB(255, 255, 255)
+			local labelText = npc.Name
 
-            if primaryNPCs[name] then
-                npc.PrimaryPart = npc.PrimaryPart or npc:FindFirstChild("HumanoidRootPart") or npc:FindFirstChild("Head")
-            end
+			if name == "deer" or name == "bear" then
+				color = Color3.fromRGB(0, 255, 0)
+			elseif name == "mammoth" then
+				color = Color3.fromRGB(0, 0, 255)
+				local hp = npc:FindFirstChild("Humanoid") and math.floor(npc.Humanoid.Health) or "?"
+				labelText = "Mammoth | " .. tostring(hp)
+			end
 
-            createESP(npc, color)
+			if primaryNPCs[name] then
+				npc.PrimaryPart = npc.PrimaryPart or npc:FindFirstChild("HumanoidRootPart") or npc:FindFirstChild("Head")
+			end
 
-            -- Tự xóa ESP khi NPC chết hoặc biến mất
-            task.spawn(function()
-                local humanoid = npc:FindFirstChildOfClass("Humanoid")
-                if humanoid then
-                    humanoid.Died:Connect(function()
-                        if npc:FindFirstChild("Executor2_ESP") then
-                            npc.Executor2_ESP:Destroy()
-                        end
-                    end)
-                end
-                npc.AncestryChanged:Connect(function(_, parent)
-                    if not parent and npc:FindFirstChild("Executor2_ESP") then
-                        npc.Executor2_ESP:Destroy()
-                    end
-                end)
-            end)
-        end
-    end
+			createESP(npc, color, labelText)
+
+			-- Tự xóa ESP khi NPC chết hoặc biến mất
+			task.spawn(function()
+				local humanoid = npc:FindFirstChildOfClass("Humanoid")
+				if humanoid then
+					humanoid.Died:Connect(function()
+						if npc:FindFirstChild("Executor2_ESP") then
+							npc.Executor2_ESP:Destroy()
+						end
+					end)
+				end
+				npc.AncestryChanged:Connect(function(_, parent)
+					if not parent and npc:FindFirstChild("Executor2_ESP") then
+						npc.Executor2_ESP:Destroy()
+					end
+				end)
+			end)
+		end
+	end
 end
 
 -- Lặp liên tục kiểm tra
 while true do
-    pcall(scanNPCs)
-    task.wait(2)
+	pcall(scanNPCs)
+	task.wait(5)
 end
