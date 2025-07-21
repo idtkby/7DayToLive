@@ -1,0 +1,165 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+
+local selectedItem = "scrap"
+local isRunning = false
+local guiVisible = true
+local savedCFrame = nil
+local collected = {}
+
+local itemList = {"scrap", "carrot", "flower", "pebbles", "flax"}
+
+-- 🧱 GUI setup
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "AutoCollectGUI"
+gui.ResetOnSpawn = false
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 190, 0, 130)
+frame.Position = UDim2.new(1, -200, 0, 10)
+frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+frame.Active = true
+frame.Draggable = true
+frame.Visible = true
+
+-- 🔘 Toggle GUI button (mobile/PC)
+local guiToggle = Instance.new("TextButton", gui)
+guiToggle.Size = UDim2.new(0, 60, 0, 25)
+guiToggle.Position = UDim2.new(1, -70, 1, -40)
+guiToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+guiToggle.BackgroundTransparency = 0.3
+guiToggle.TextColor3 = Color3.new(1,1,1)
+guiToggle.Text = "Toggle UI"
+guiToggle.TextSize = 14
+
+guiToggle.MouseButton1Click:Connect(function()
+	guiVisible = not guiVisible
+	frame.Visible = guiVisible
+end)
+
+-- 🔻 Dropdown
+local dropdown = Instance.new("TextButton", frame)
+dropdown.Size = UDim2.new(1, 0, 0, 30)
+dropdown.Position = UDim2.new(0, 0, 0, 0)
+dropdown.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+dropdown.TextColor3 = Color3.new(1,1,1)
+dropdown.Text = "Item: scrap"
+
+local dropdownList = Instance.new("ScrollingFrame", frame)
+dropdownList.Size = UDim2.new(1, 0, 0, 60)
+dropdownList.Position = UDim2.new(0, 0, 0, 30)
+dropdownList.CanvasSize = UDim2.new(0, 0, 0, #itemList * 24)
+dropdownList.BackgroundColor3 = Color3.fromRGB(50,50,50)
+dropdownList.Visible = false
+dropdownList.ScrollBarThickness = 3
+
+for i, item in ipairs(itemList) do
+	local btn = Instance.new("TextButton", dropdownList)
+	btn.Size = UDim2.new(1, 0, 0, 24)
+	btn.Position = UDim2.new(0, 0, 0, (i-1)*24)
+	btn.Text = item
+	btn.TextColor3 = Color3.new(1,1,1)
+	btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+	btn.MouseButton1Click:Connect(function()
+		selectedItem = item
+		dropdown.Text = "Item: " .. item
+		dropdownList.Visible = false
+	end)
+end
+
+dropdown.MouseButton1Click:Connect(function()
+	dropdownList.Visible = not dropdownList.Visible
+end)
+
+-- 🟢 Toggle button
+local toggle = Instance.new("TextButton", frame)
+toggle.Size = UDim2.new(1, 0, 0, 30)
+toggle.Position = UDim2.new(0, 0, 1, -30)
+toggle.BackgroundColor3 = Color3.fromRGB(70, 110, 70)
+toggle.TextColor3 = Color3.new(1,1,1)
+toggle.Text = "AutoCollect: OFF"
+
+-- 🔁 AntiTrip (không ngã, nằm, đơ)
+task.spawn(function()
+	while true do
+		task.wait(0.5)
+		local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+		if hum then
+			if hum.Sit then hum.Sit = false end
+			if hum.PlatformStand then hum.PlatformStand = false end
+		end
+	end
+end)
+
+-- 🚀 Prompt Kích hoạt
+local function activatePrompt(prompt, part, hrp)
+	for i = 1, (selectedItem == "carrot" and 10 or 1) do
+		if not isRunning then return end
+		pcall(function()
+			if prompt:IsA("ProximityPrompt") then
+				fireproximityprompt(prompt)
+			elseif prompt:IsA("ClickDetector") then
+				fireclickdetector(prompt)
+			elseif prompt.Name == "TouchInterest" then
+				firetouchinterest(hrp, part, 0)
+				task.wait()
+				firetouchinterest(hrp, part, 1)
+			end
+		end)
+		task.wait(0.05)
+	end
+end
+
+-- 🔁 Collect vòng lặp
+local function collectLoop()
+	local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	local hrp = char:WaitForChild("HumanoidRootPart")
+	savedCFrame = hrp.CFrame
+	collected = {}
+
+	while isRunning do
+		local found = false
+		for _, obj in ipairs(workspace:GetDescendants()) do
+			if not isRunning then return end
+			if obj:IsA("Model") and obj.Name:lower() == selectedItem and not collected[obj] then
+				local part = obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+				local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
+					or obj:FindFirstChildWhichIsA("ClickDetector", true)
+					or obj:FindFirstChild("TouchInterest", true)
+				if part and prompt then
+					found = true
+					collected[obj] = true
+					hrp.CFrame = CFrame.new(part.Position + Vector3.new(0, 6, 0))
+					task.wait(0.2)
+					local attempts = 0
+					repeat
+						activatePrompt(prompt, part, hrp)
+						task.wait(0.3)
+						attempts += 1
+					until not obj.Parent or attempts >= 5
+					break
+				end
+			end
+		end
+		if not found then
+			task.wait(1)
+		end
+	end
+end
+
+-- ⚡ Bắt đầu/Tắt
+toggle.MouseButton1Click:Connect(function()
+	isRunning = not isRunning
+	toggle.Text = "AutoCollect: " .. (isRunning and "ON" or "OFF")
+
+	if not isRunning then
+		local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+		local hrp = char:FindFirstChild("HumanoidRootPart")
+		if savedCFrame and hrp then
+			char:PivotTo(savedCFrame)
+		end
+	else
+		task.spawn(collectLoop)
+	end
+end)
