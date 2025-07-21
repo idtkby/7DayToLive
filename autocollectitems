@@ -31,7 +31,8 @@ guiToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 guiToggle.BackgroundTransparency = 0.3
 guiToggle.TextColor3 = Color3.new(1,1,1)
 guiToggle.Text = "Toggle UI"
-guiToggle.TextSize = 14
+guiToggle.Active = true
+guiToggle.Draggable = true
 
 guiToggle.MouseButton1Click:Connect(function()
 	guiVisible = not guiVisible
