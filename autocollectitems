@@ -8,7 +8,7 @@ local guiVisible = true
 local savedCFrame = nil
 local collected = {}
 
-local itemList = {"scrap", "carrot", "flower", "pebbles", "flax", "log", "glass"}
+local itemList = {"scrap", "carrot", "flower", "pebbles", "flax", "log", "glass", "berry", "blood_bark"}
 
 -- 🧱 GUI setup
 local gui = Instance.new("ScreenGui", game.CoreGui)
