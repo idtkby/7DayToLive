@@ -64,6 +64,8 @@ button.MouseButton1Click:Connect(function()
 		for i = 1, 3 do tool.eat:FireServer() end
 	elseif name == "Blood Bark" then
 		for i = 1, 12 do tool.eat:FireServer() end
+ elseif name == "Carrot" then
+		for i = 1, 7 do tool.eat:FireServer() end
 	elseif name == "Beans" then
 		for i = 1, 5 do tool.eat:FireServer() end
 	end
@@ -76,6 +78,7 @@ local validFoods = {
  ["Cooked Bear Meat"] = true,
 	["Cooked Fish"] = true,
 	["Blood Bark"] = true,
+ ["Carrot"] = true,
 	["Beans"] = true,
 }
 
