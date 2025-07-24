@@ -112,7 +112,7 @@ local function activatePrompt(prompt, part, hrp)
 	end
 end
 
--- 🔁 Collect vòng lặp
+-- 🔁 Collect vòng lặp cải tiến - Ưu tiên kích Prompt hiện tại xung quanh cụm
 local function collectLoop()
 	local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 	local hrp = char:WaitForChild("HumanoidRootPart")
@@ -128,7 +128,9 @@ local function collectLoop()
 				local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
 					or obj:FindFirstChildWhichIsA("ClickDetector", true)
 					or obj:FindFirstChild("TouchInterest", true)
+
 				if part and prompt then
+					print("breh:", obj.Name)
 					found = true
 					collected[obj] = true
 					hrp.CFrame = CFrame.new(part.Position + Vector3.new(0, 6, 0))
@@ -140,9 +142,13 @@ local function collectLoop()
 						attempts += 1
 					until not obj.Parent or attempts >= 5
 					break
+				else
+					if not part then warn("where part in " .. obj.Name) end
+					if not prompt then warn("where prompt in " .. obj.Name) end
 				end
 			end
 		end
+
 		if not found then
 			task.wait(1)
 		end
